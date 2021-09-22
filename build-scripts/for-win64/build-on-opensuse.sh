@@ -1,12 +1,17 @@
-#!/bin/sh
+#!/bin/bash
 
 set -e
 
-mkdir -p /home/runner/wx/build/win64
-rm -rf /home/runner/wx/build/win64/*
-cp -Rv /mnt/host/home/oleg/my-projects/wx/WxWidgetsCross/wxWidgets-3.0.2 /home/runner/wx/build/win64/
+SRC_DIR=`dirname $0`/../..
+PARALLEL_PRMS="-j$(nproc)"
 
-cd /home/runner/wx/build/win64/wxWidgets-3.0.2
+mkdir -p build/win64
+rm -rf build/win64/*
+cp -Rv $SRC_DIR/wxWidgets-3.0.2 build/win64/src
+mkdir build/win64/inst
+INST_DIR=`readlink -f build/win64/inst`
+
+pushd build/win64/src
 
 export LIBPNG16_CONFIG=/usr/x86_64-w64-mingw32/sys-root/mingw/bin/libpng16-config
 export HOST_CC=gcc
@@ -17,7 +22,7 @@ export CXXFLAGS="-O2 -g -pipe -Wall -fexceptions --param=ssp-buffer-size=4 -mms-
 export PKG_CONFIG_PATH="/usr/x86_64-w64-mingw32/sys-root/mingw/lib/pkgconfig:/usr/x86_64-w64-mingw32/sys-root/mingw/share/pkgconfig"
 export LDFLAGS="-Wl,--exclude-libs=libintl.a -Wl,--exclude-libs=libiconv.a -Wl,--no-keep-memory -fstack-protector"
 
-  ./configure --cache-file=mingw64-config.cache \
+./configure --cache-file=mingw64-config.cache \
 	--host=x86_64-w64-mingw32 \
 	--build=x86_64-suse-linux-gnu \
 	--target=x86_64-w64-mingw32 \
@@ -35,4 +40,8 @@ export LDFLAGS="-Wl,--exclude-libs=libintl.a -Wl,--exclude-libs=libiconv.a -Wl,-
 	--mandir=/usr/x86_64-w64-mingw32/sys-root/mingw/share/man \
 	--infodir=/usr/x86_64-w64-mingw32/sys-root/mingw/share/info --enable-stl --enable-release --enable-debug --enable-accessibility \
 	--enable-vendor=suse
-make -j4
+
+make $PARALLEL_PRMS
+make DESTDIR=$INST_DIR install
+
+popd

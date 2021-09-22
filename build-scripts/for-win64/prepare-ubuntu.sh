@@ -8,5 +8,5 @@ sudo DEBIAN_FRONTEND=noninteractive apt-get install -y \
   autoconf automake libtool binutils-mingw-w64-x86-64 make
 
 
-sudo zypper install -y mingw64-filesystem mingw64-libexpat-devel mingw64-libjpeg-devel mingw64-libpng-devel mingw64-libtiff-devel
+# sudo zypper install -y mingw64-filesystem mingw64-libexpat-devel mingw64-libjpeg-devel mingw64-libpng-devel mingw64-libtiff-devel
 
