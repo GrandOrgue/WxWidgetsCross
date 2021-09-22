@@ -8,8 +8,12 @@ PARALLEL_PRMS="-j$(nproc)"
 mkdir -p build/win64
 rm -rf build/win64/*
 cp -Rv $SRC_DIR/wxWidgets-3.0.2 build/win64/src
-mkdir build/win64/inst
-INST_DIR=`readlink -f build/win64/inst`
+
+DEBIAN_PKG_NAME=wxwidgets-mingw-w64
+VERSION=${1:-3.0.2}
+BUILD_VERSION=${2:-0.os}
+MINGW64_PREFIX=/usr/x86_64-w64-mingw32
+PKG_DIR=`readlink -f build/win64/${DEBIAN_PKG_NAME}_${VERSION}-${BUILD_VERSION}_all`
 
 pushd build/win64/src
 
@@ -42,6 +46,24 @@ export LDFLAGS="-Wl,--exclude-libs=libintl.a -Wl,--exclude-libs=libiconv.a -Wl,-
 	--enable-vendor=ubuntu
 
 make $PARALLEL_PRMS
-make DESTDIR=$INST_DIR install
+
+# install
+MINGW_DIR=${PKG_DIR}${MINGW64_PREFIX}
+
+make $PARALLEL_PRMS DESTDIR=${PKG_DIR} install
+mkdir -p $MINGW_DIR/bin
+mv -v $MINGW_DIR/lib/*.dll $MINGW_DIR/bin/
+
+mkdir $PKG_DIR/DEBIAN
+
+cat >$PKG_DIR/DEBIAN/control <<EOF
+Package: $DEBIAN_PKG_NAME
+Version: $VERSION-$BUILD_VERSION
+Architecture: all
+Maintainer: Oleg Samarin <osamarin68@gmail.com>
+Description: Everything needed for development with wxWidgets/wxMSW
+EOF
+
+dpkg-deb --build --root-owner-group $PKG_DIR
 
 popd
