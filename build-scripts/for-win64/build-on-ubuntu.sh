@@ -9,7 +9,7 @@ mkdir -p build/win64
 rm -rf build/win64/*
 cp -Rv $SRC_DIR/wxWidgets-3.0.2 build/win64/src
 
-DEBIAN_PKG_NAME=wxwidgets-mingw-w64
+DEBIAN_PKG_NAME=wxwidgets3.0-mingw-w64
 VERSION=${1:-3.0.2}
 BUILD_VERSION=${2:-0.os}
 MINGW64_PREFIX=/usr/x86_64-w64-mingw32
