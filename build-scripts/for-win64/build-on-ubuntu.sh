@@ -4,18 +4,27 @@ set -e
 
 SRC_DIR=`dirname $0`/../..
 PARALLEL_PRMS="-j$(nproc)"
-
-mkdir -p build/win64
-rm -rf build/win64/*
-cp -Rv $SRC_DIR/wxWidgets-3.0.2 build/win64/src
-
 DEBIAN_PKG_NAME=wxwidgets3.0-mingw-w64
 VERSION=${1:-3.0.2}
 BUILD_VERSION=${2:-0.os}
 MINGW64_PREFIX=/usr/x86_64-w64-mingw32
-PKG_DIR=`readlink -f build/win64/${DEBIAN_PKG_NAME}_${VERSION}-${BUILD_VERSION}_all`
+PKG_DIR=`pwd`/build/win64/${DEBIAN_PKG_NAME}_${VERSION}-${BUILD_VERSION}_all
+
+
+mkdir -p build/win64
+rm -rf build/win64/*
+cp -Rv $SRC_DIR/submodules/WxWidgets build/win64/src
 
 pushd build/win64/src
+
+patch -p1 <$SRC_DIR/patches/Fix-calculation-of-space-for-bitmap-in-wxButton.patch
+patch -p1 <$SRC_DIR/patches/soversion.diff
+patch -p1 <$SRC_DIR/patches/16849.diff
+patch -p1 <$SRC_DIR/patches/3.0.2-stc-gcc6.patch
+patch -p1 <$SRC_DIR/patches/16984-1.patch
+patch -p1 <$SRC_DIR/patches/16984-2.patch
+patch -p1 <$SRC_DIR/patches/0001-fix-msw-accessibility.patch
+patch -p0 <$SRC_DIR/patches/fix-msw-ConvertToImage-alpha.patch
 
 export LIBPNG16_CONFIG=/usr/x86_64-w64-mingw32/bin/libpng16-config
 export HOST_CC=gcc
@@ -53,6 +62,8 @@ MINGW_DIR=${PKG_DIR}${MINGW64_PREFIX}
 make $PARALLEL_PRMS DESTDIR=${PKG_DIR} install
 mkdir -p $MINGW_DIR/bin
 mv -v $MINGW_DIR/lib/*.dll $MINGW_DIR/bin/
+
+cd ..
 
 mkdir $PKG_DIR/DEBIAN
 
