@@ -1,0 +1,258 @@
+commit aa30a2f97ade6fe019f2f288917296b009bf4221
+Author: Vadim Zeitlin <vadim@wxwidgets.org>
+Date:   Fri Jun 12 17:43:33 2015 +0200
+
+    Fix building and using the library with MinGW -std=c++{98,11} options.
+    
+    These options enable "strict ANSI" mode in MinGW which omits declarations of
+    POSIX functions from the standard headers. To allow the library and, possibly
+    even more importantly, the user code including our headers, to compile with
+    these options, declare the functions that we need ourselves.
+    
+    This might appear to go against the spirit of "strict ANSI" mode, but the only
+    alternative would be to not use such functions at all and silently cripple the
+    library when -std=c++NN is used, compared to -std=g++NN case, and this doesn't
+    seem appealing neither.
+    
+    Closes #16984.
+
+diff --git a/include/wx/filefn.h b/include/wx/filefn.h
+index 4815807..6cf2548 100644
+--- a/include/wx/filefn.h
++++ b/include/wx/filefn.h
+@@ -216,8 +216,22 @@ enum wxPosixPermissions
+         #define wxFtell _ftelli64
+     #elif wxCHECK_MINGW32_VERSION(3, 5) // mingw-runtime version (not gcc)
+         #define wxHAS_HUGE_STDIO_FILES
++
++        wxDECL_FOR_STRICT_MINGW32(int, fseeko64, (FILE*, long long, int));
+         #define wxFseek fseeko64
+-        #define wxFtell ftello64
++
++        #ifdef wxNEEDS_STRICT_ANSI_WORKAROUNDS
++            // Unfortunately ftello64() is not defined in the library for
++            // whatever reason but as an inline function, so define wxFtell()
++            // here similarly.
++            inline long long wxFtell(FILE* fp)
++            {
++                fpos_t pos;
++                return fgetpos(fp, &pos) == 0 ? pos : -1LL;
++            }
++        #else
++            #define wxFtell ftello64
++        #endif
+     #endif
+ 
+     // other Windows compilers (DMC, Watcom, and Borland) don't have huge file
+@@ -376,7 +390,7 @@ enum wxPosixPermissions
+ 
+     // finally the default char-type versions
+     #if wxUSE_UNICODE
+-        #if wxUSE_UNICODE_MSLU || defined(__WX_STRICT_ANSI_GCC__)
++        #if wxUSE_UNICODE_MSLU
+             // implement the missing file functions in Win9x ourselves
+             WXDLLIMPEXP_BASE int wxMSLU__wopen(const wxChar *name,
+                                                int flags, int mode);
+@@ -404,6 +418,9 @@ enum wxPosixPermissions
+             #define wxCRT_MkDir     wxCRT_MkDirW
+             #define wxCRT_RmDir     wxCRT_RmDirW
+             #define wxCRT_Stat      wxCRT_StatW
++
++            wxDECL_FOR_STRICT_MINGW32(int, _wmkdir, (const wchar_t*))
++            wxDECL_FOR_STRICT_MINGW32(int, _wrmdir, (const wchar_t*))
+         #endif // wxUSE_UNICODE_MSLU/!wxUSE_UNICODE_MSLU
+     #else // !wxUSE_UNICODE
+         #define wxCRT_Open      wxCRT_OpenA
+diff --git a/include/wx/math.h b/include/wx/math.h
+index 89a1b94..909764a 100644
+--- a/include/wx/math.h
++++ b/include/wx/math.h
+@@ -71,6 +71,10 @@
+     #else
+         #define wxFinite(x) isfinite(x)
+     #endif
++#elif defined(wxNEEDS_STRICT_ANSI_WORKAROUNDS)
++    wxDECL_FOR_STRICT_MINGW32(int, _finite, (double));
++
++    #define wxFinite(x) _finite(x)
+ #elif ( defined(__GNUG__)||defined(__GNUWIN32__)||defined(__DJGPP__)|| \
+       defined(__SGI_CC__)||defined(__SUNCC__)||defined(__XLC__)|| \
+       defined(__HPUX__) ) && ( !defined(wxOSX_USE_IPHONE) || wxOSX_USE_IPHONE == 0 )
+diff --git a/include/wx/msw/gccpriv.h b/include/wx/msw/gccpriv.h
+index c196279..c2b4b73 100644
+--- a/include/wx/msw/gccpriv.h
++++ b/include/wx/msw/gccpriv.h
+@@ -156,5 +156,28 @@
+     #endif
+ #endif
+ 
++/*
++    Traditional MinGW (but not MinGW-w64 nor TDM-GCC) omits many POSIX
++    functions from their headers when compiled with __STRICT_ANSI__ defined.
++    Unfortunately this means that they are not available when using -std=c++98
++    (not very common) or -std=c++11 (much more so), but we still need them even
++    in this case. As the intention behind using -std=c++11 is probably to get
++    the new C++11 features and not disable the use of POSIX functions, we just
++    manually declare the functions we need in this case if necessary.
++ */
++#if defined(__MINGW32_TOOLCHAIN__) && defined(__STRICT_ANSI__)
++    #define wxNEEDS_STRICT_ANSI_WORKAROUNDS
++
++    /*
++        This macro is somewhat unusual as it takes the list of parameters
++        inside parentheses and includes semicolon inside it as putting the
++        semicolon outside wouldn't do the right thing when this macro is empty.
++     */
++    #define wxDECL_FOR_STRICT_MINGW32(rettype, func, params) \
++        extern "C" _CRTIMP rettype __cdecl __MINGW_NOTHROW func params ;
++#else
++    #define wxDECL_FOR_STRICT_MINGW32(rettype, func, params)
++#endif
++
+ #endif
+   /* _WX_MSW_GCCPRIV_H_ */
+diff --git a/include/wx/msw/private.h b/include/wx/msw/private.h
+index a6b3f76..27c5fb4 100644
+--- a/include/wx/msw/private.h
++++ b/include/wx/msw/private.h
+@@ -183,6 +183,8 @@ extern LONG APIENTRY _EXPORT
+    || defined(__MINGW32__)
+     #define wxGetOSFHandle(fd) ((HANDLE)_get_osfhandle(fd))
+     #define wxOpenOSFHandle(h, flags) (_open_osfhandle(wxPtrToUInt(h), flags))
++
++    wxDECL_FOR_STRICT_MINGW32(FILE*, _fdopen, (int, const char*))
+     #define wx_fdopen _fdopen
+ #endif
+ 
+diff --git a/include/wx/wxcrtbase.h b/include/wx/wxcrtbase.h
+index 1c3522e..4ebe8c2 100644
+--- a/include/wx/wxcrtbase.h
++++ b/include/wx/wxcrtbase.h
+@@ -73,6 +73,9 @@
+ 
+ #ifdef wxNEED_ISASCII
+     inline int isascii(int c) { return (unsigned)c < 0x80; }
++
++    // Avoid further (re)definitions of it.
++    #define isascii isascii
+ #endif
+ 
+ #ifdef _WIN32_WCE
+@@ -445,7 +448,7 @@ WXDLLIMPEXP_BASE wchar_t *wxCRT_StrtokW(wchar_t *psz, const wchar_t *delim, wcha
+ #else /* Unicode filenames */
+     /* special case: these functions are missing under Win9x with Unicows so we
+        have to implement them ourselves */
+-    #if wxUSE_UNICODE_MSLU || defined(__WX_STRICT_ANSI_GCC__)
++    #if wxUSE_UNICODE_MSLU
+             WXDLLIMPEXP_BASE FILE* wxMSLU__wfopen(const wchar_t *name, const wchar_t *mode);
+             WXDLLIMPEXP_BASE FILE* wxMSLU__wfreopen(const wchar_t *name, const wchar_t *mode, FILE *stream);
+             WXDLLIMPEXP_BASE int wxMSLU__wrename(const wchar_t *oldname, const wchar_t *newname);
+@@ -455,6 +458,11 @@ WXDLLIMPEXP_BASE wchar_t *wxCRT_StrtokW(wchar_t *psz, const wchar_t *delim, wcha
+             #define wxCRT_Remove    wxMSLU__wremove
+             #define wxCRT_Rename    wxMSLU__wrename
+     #else
++        wxDECL_FOR_STRICT_MINGW32(FILE*, _wfopen, (const wchar_t*, const wchar_t*))
++        wxDECL_FOR_STRICT_MINGW32(FILE*, _wfreopen, (const wchar_t*, const wchar_t*, FILE*))
++        wxDECL_FOR_STRICT_MINGW32(int, _wrename, (const wchar_t*, const wchar_t*))
++        wxDECL_FOR_STRICT_MINGW32(int, _wremove, (const wchar_t*))
++
+         /* WinCE CRT doesn't provide these functions so use our own */
+         #ifdef __WXWINCE__
+             WXDLLIMPEXP_BASE int wxCRT_Rename(const wchar_t *src,
+diff --git a/src/common/filefn.cpp b/src/common/filefn.cpp
+index bfa1efa..f563a1a 100644
+--- a/src/common/filefn.cpp
++++ b/src/common/filefn.cpp
+@@ -90,6 +90,8 @@
+     #define HAVE_WGETCWD
+ #endif
+ 
++wxDECL_FOR_STRICT_MINGW32(int, _fileno, (FILE*))
++
+ // ----------------------------------------------------------------------------
+ // constants
+ // ----------------------------------------------------------------------------
+diff --git a/src/common/time.cpp b/src/common/time.cpp
+index 011b601..0b6bd35 100644
+--- a/src/common/time.cpp
++++ b/src/common/time.cpp
+@@ -22,6 +22,23 @@
+     #pragma hdrstop
+ #endif
+ 
++// This is a horrible hack which only works because we don't currently include
++// <time.h> from wx/wxprec.h. It is needed because we need timezone-related
++// stuff from MinGW time.h, but it is not compiled in strict ANSI mode and it
++// is too complicated to be dealt with using wxDECL_FOR_STRICT_MINGW32(). So we
++// just include the header after undefining __STRICT_ANSI__ to get all the
++// declarations we need -- and then define it back to avoid inconsistencies in
++// all our other headers.
++//
++// Note that the same hack is used for "environ" in utilscmn.cpp, so if the
++// code here is modified because this hack becomes unnecessary or a better
++// solution is found, the code there should be updated as well.
++#ifdef wxNEEDS_STRICT_ANSI_WORKAROUNDS
++    #undef __STRICT_ANSI__
++    #include <time.h>
++    #define __STRICT_ANSI__
++#endif
++
+ #include "wx/time.h"
+ 
+ #ifndef WX_PRECOMP
+diff --git a/src/common/utilscmn.cpp b/src/common/utilscmn.cpp
+index 6c7d0c3..a83ab45 100644
+--- a/src/common/utilscmn.cpp
++++ b/src/common/utilscmn.cpp
+@@ -23,6 +23,14 @@
+     #pragma hdrstop
+ #endif
+ 
++// See comment about this hack in time.cpp: here we do it for environ external
++// variable which can't be easily declared when using MinGW in strict ANSI mode.
++#ifdef wxNEEDS_STRICT_ANSI_WORKAROUNDS
++    #undef __STRICT_ANSI__
++    #include <stdlib.h>
++    #define __STRICT_ANSI__
++#endif
++
+ #ifndef WX_PRECOMP
+     #include "wx/app.h"
+     #include "wx/string.h"
+diff --git a/src/common/wxcrt.cpp b/src/common/wxcrt.cpp
+index 29ecbaa..b58b728 100644
+--- a/src/common/wxcrt.cpp
++++ b/src/common/wxcrt.cpp
+@@ -73,6 +73,10 @@
+     #include <xlocale.h>
+ #endif
+ 
++wxDECL_FOR_STRICT_MINGW32(int, vswprintf, (wchar_t*, const wchar_t*, __VALIST));
++wxDECL_FOR_STRICT_MINGW32(int, _putws, (const wchar_t*));
++wxDECL_FOR_STRICT_MINGW32(void, _wperror, (const wchar_t*));
++
+ WXDLLIMPEXP_BASE size_t wxMB2WC(wchar_t *buf, const char *psz, size_t n)
+ {
+   // assume that we have mbsrtowcs() too if we have wcsrtombs()
+diff --git a/src/stc/scintilla/include/Scintilla.h b/src/stc/scintilla/include/Scintilla.h
+index 3cacd53..616e93f 100644
+--- a/src/stc/scintilla/include/Scintilla.h
++++ b/src/stc/scintilla/include/Scintilla.h
+@@ -42,6 +42,17 @@ typedef long sptr_t;
+ 
+ typedef sptr_t (*SciFnDirect)(sptr_t ptr, unsigned int iMessage, uptr_t wParam, sptr_t lParam);
+ 
++/* Workaround for building with MinGW (not MinGW-w64) in strict ANSI mode which
++ * is, notably, enabled by -std=c++NN options. */
++#if defined(__MINGW32__) && !defined(__MINGW64_VERSION_MAJOR) && defined(__STRICT_ANSI__)
++/* Other headers included by an application using Scintilla might already
++ * define isascii() too, for the same reasons, try to play nicely with the. */
++#ifndef isascii
++inline int isascii(int c) { return !(c & ~0x7F); }
++#define isascii isascii
++#endif
++#endif
++
+ /* ++Autogenerated -- start of section automatically generated from Scintilla.iface */
+ #define INVALID_POSITION -1
+ #define SCI_START 2000
