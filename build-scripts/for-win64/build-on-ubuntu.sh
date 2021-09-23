@@ -17,13 +17,9 @@ cp -Rv $SRC_DIR/submodules/WxWidgets build/win64/src
 
 pushd build/win64/src
 
-patch -p1 <$SRC_DIR/patches/Fix-calculation-of-space-for-bitmap-in-wxButton.patch
 patch -p1 <$SRC_DIR/patches/soversion.diff
 patch -p1 <$SRC_DIR/patches/16849.diff
-patch -p1 <$SRC_DIR/patches/3.0.2-stc-gcc6.patch
-patch -p1 <$SRC_DIR/patches/16984-1.patch
 patch -p1 <$SRC_DIR/patches/16984-2.patch
-patch -p1 <$SRC_DIR/patches/0001-fix-msw-accessibility.patch
 patch -p0 <$SRC_DIR/patches/fix-msw-ConvertToImage-alpha.patch
 
 export LIBPNG16_CONFIG=/usr/x86_64-w64-mingw32/bin/libpng16-config
