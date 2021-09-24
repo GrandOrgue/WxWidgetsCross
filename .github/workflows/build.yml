@@ -64,7 +64,7 @@ jobs:
     steps:
     - uses: actions/checkout@v2
       with:
-        submodules: true
+        submodules: recursive
     
     - name: Install Dependencies
       run: ${{github.workspace}}/build-scripts/for-win64/prepare-ubuntu.sh
