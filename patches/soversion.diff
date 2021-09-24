@@ -1,21 +1,8 @@
-From: Jan Engelhardt <jengelh@inai.de>
-Date: 2014-11-08 11:29:50.371567089 +0100
-
-Use filenames similar to those on Linux.
-Add an identifying SO version, similar to soversion.diff
-in X11:wxWidgets/wxWidgets-3_0.
-
----
- Makefile.in               |   13 ++++---------
- build/aclocal/bakefile.m4 |    2 +-
- 2 files changed, 5 insertions(+), 10 deletions(-)
-
-Index: wxWidgets-3.0.2/Makefile.in
-===================================================================
---- wxWidgets-3.0.2.orig/Makefile.in
-+++ wxWidgets-3.0.2/Makefile.in
-@@ -36,7 +36,7 @@ bindir = @bindir@
- libdir = @libdir@
+diff -Naur submodules/WxWidgets/Makefile.in build/win64/src/Makefile.in
+--- old/Makefile.in	2021-09-23 18:15:58.641661967 +0300
++++ new/Makefile.in	2021-09-23 20:16:01.535100836 +0300
+@@ -37,7 +37,7 @@
+ dlldir = @dlldir@
  datadir = @datadir@
  includedir = @includedir@
 -DLLPREFIX = @DLLPREFIX@
@@ -23,16 +10,16 @@ Index: wxWidgets-3.0.2/Makefile.in
  DLLPREFIX_MODULE = @DLLPREFIX_MODULE@
  LIBS = @LIBS@
  AR = @AR@
-@@ -2103,14 +2103,9 @@ LOCALE_MSW_LINGUAS =  it
+@@ -2182,14 +2182,9 @@
  @COND_BUILD_debug@WXDEBUGFLAG = d
  @COND_UNICODE_1@WXUNICODEFLAG = u
  @COND_WXUNIV_1@WXUNIVNAME = univ
 -@COND_PLATFORM_WIN32_0@WXDLLNAMEPREFIX = wx_base$(WXBASEPORT)
 -@COND_PLATFORM_WIN32_1@WXDLLNAMEPREFIX = \
--@COND_PLATFORM_WIN32_1@	wxbase$(WXBASEPORT)$(WX_RELEASE_NODOT)
+-@COND_PLATFORM_WIN32_1@	wxbase$(WXBASEPORT)$(WX_VERSION_NODOT)
 -@COND_PLATFORM_WIN32_0@WXDLLNAMEPREFIXGUI = wx_$(PORTNAME)$(WXUNIVNAME)
 -@COND_PLATFORM_WIN32_1@WXDLLNAMEPREFIXGUI = \
--@COND_PLATFORM_WIN32_1@	wx$(PORTNAME)$(WXUNIVNAME)$(WX_RELEASE_NODOT)
+-@COND_PLATFORM_WIN32_1@	wx$(PORTNAME)$(WXUNIVNAME)$(WX_VERSION_NODOT)
 -@COND_PLATFORM_WIN32_0@WXDLLVERSIONTAG = -$(WX_RELEASE)
 -@COND_PLATFORM_WIN32_1@WXDLLVERSIONTAG = 
 +WXDLLNAMEPREFIX = wx_base$(WXBASEPORT)

@@ -5,7 +5,7 @@ set -e
 SRC_DIR=`dirname $0`/../..
 PARALLEL_PRMS="-j$(nproc)"
 DEBIAN_PKG_NAME=wxwidgets3.0-mingw-w64
-VERSION=${1:-3.0.2}
+VERSION=${1:-3.1.5}
 BUILD_VERSION=${2:-0.go}
 MINGW64_PREFIX=/usr/x86_64-w64-mingw32
 PKG_DIR=`pwd`/build/win64/${DEBIAN_PKG_NAME}_${VERSION}-${BUILD_VERSION}_all
@@ -19,7 +19,6 @@ pushd build/win64/src
 
 patch -p1 <$SRC_DIR/patches/soversion.diff
 patch -p1 <$SRC_DIR/patches/16849.diff
-patch -p1 <$SRC_DIR/patches/16984-2.patch
 patch -p0 <$SRC_DIR/patches/fix-msw-ConvertToImage-alpha.patch
 
 export LIBPNG16_CONFIG=/usr/x86_64-w64-mingw32/bin/libpng16-config
@@ -47,7 +46,8 @@ export LDFLAGS="-Wl,--exclude-libs=libintl.a -Wl,--exclude-libs=libiconv.a -Wl,-
 	--localstatedir=$MINGW64_PREFIX/var \
 	--sharedstatedir=$MINGW64_PREFIX/com \
 	--mandir=$MINGW64_PREFIX/share/man \
-	--infodir=$MINGW64_PREFIX/share/info --enable-stl --enable-release --enable-debug --enable-accessibility \
+	--infodir=$MINGW64_PREFIX/share/info \
+	--enable-stl --enable-debug --enable-accessibility \
 	--enable-vendor=ubuntu
 
 make $PARALLEL_PRMS
