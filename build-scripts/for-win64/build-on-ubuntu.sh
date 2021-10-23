@@ -58,6 +58,7 @@ MINGW_DIR=${PKG_DIR}${MINGW64_PREFIX}
 make $PARALLEL_PRMS DESTDIR=${PKG_DIR} install
 mkdir -p $MINGW_DIR/bin
 mv -v $MINGW_DIR/lib/*.dll $MINGW_DIR/bin/
+/usr/x86_64-w64-mingw32/bin/strip $MINGW_DIR/bin/*.dll
 
 cd ..
 
