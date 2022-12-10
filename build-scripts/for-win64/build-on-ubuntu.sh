@@ -18,8 +18,8 @@ cp -Rv $SRC_DIR/submodules/WxWidgets build/win64/src
 pushd build/win64/src
 
 patch -p1 <$SRC_DIR/patches/soversion.diff
-patch -p1 <$SRC_DIR/patches/16849.diff
-patch -p0 <$SRC_DIR/patches/fix-msw-ConvertToImage-alpha.patch
+# patch -p1 <$SRC_DIR/patches/16849.diff
+# patch -p0 <$SRC_DIR/patches/fix-msw-ConvertToImage-alpha.patch
 
 export LIBPNG16_CONFIG=/usr/x86_64-w64-mingw32/bin/libpng16-config
 export HOST_CC=gcc
