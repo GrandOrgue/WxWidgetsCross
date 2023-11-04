@@ -4,7 +4,7 @@ set -e
 
 SRC_DIR=`dirname $0`/../..
 PARALLEL_PRMS="-j$(nproc)"
-DEBIAN_PKG_NAME=wxwidgets3.0-mingw-w64
+DEBIAN_PKG_NAME=wxwidgets3-mingw-w64
 VERSION=${1:-3.1.5}
 BUILD_VERSION=${2:-0.go}
 MINGW64_PREFIX=/usr/x86_64-w64-mingw32
