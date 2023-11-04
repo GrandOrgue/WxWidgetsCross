@@ -1,7 +1,8 @@
-diff -Naur submodules/WxWidgets/Makefile.in build/win64/src/Makefile.in
---- old/Makefile.in	2021-09-23 18:15:58.641661967 +0300
-+++ new/Makefile.in	2021-09-23 20:16:01.535100836 +0300
-@@ -37,7 +37,7 @@
+diff --git a/Makefile.in b/Makefile.in
+index 7b4438bcb5..5472f5bd54 100644
+--- a/Makefile.in
++++ b/Makefile.in
+@@ -37,7 +37,7 @@ libdir = @libdir@
  dlldir = @dlldir@
  datadir = @datadir@
  includedir = @includedir@
@@ -10,21 +11,19 @@ diff -Naur submodules/WxWidgets/Makefile.in build/win64/src/Makefile.in
  DLLPREFIX_MODULE = @DLLPREFIX_MODULE@
  LIBS = @LIBS@
  AR = @AR@
-@@ -2182,14 +2182,9 @@
+@@ -2230,12 +2230,9 @@ LOCALE_LINGUAS = ca cs da de el es fi fr hu id it ja nl pl ru sl sv tr uk zh zh_
  @COND_BUILD_debug@WXDEBUGFLAG = d
  @COND_UNICODE_1@WXUNICODEFLAG = u
  @COND_WXUNIV_1@WXUNIVNAME = univ
 -@COND_PLATFORM_WIN32_0@WXDLLNAMEPREFIX = wx_base$(WXBASEPORT)
 -@COND_PLATFORM_WIN32_1@WXDLLNAMEPREFIX = \
--@COND_PLATFORM_WIN32_1@	wxbase$(WXBASEPORT)$(WX_VERSION_NODOT)
+-@COND_PLATFORM_WIN32_1@	wxbase$(WXBASEPORT)$(WX_RELEASE_NODOT)
 -@COND_PLATFORM_WIN32_0@WXDLLNAMEPREFIXGUI = wx_$(PORTNAME)$(WXUNIVNAME)
 -@COND_PLATFORM_WIN32_1@WXDLLNAMEPREFIXGUI = \
--@COND_PLATFORM_WIN32_1@	wx$(PORTNAME)$(WXUNIVNAME)$(WX_VERSION_NODOT)
--@COND_PLATFORM_WIN32_0@WXDLLVERSIONTAG = -$(WX_RELEASE)
--@COND_PLATFORM_WIN32_1@WXDLLVERSIONTAG = 
+-@COND_PLATFORM_WIN32_1@	wx$(PORTNAME)$(WXUNIVNAME)$(WX_RELEASE_NODOT)
 +WXDLLNAMEPREFIX = wx_base$(WXBASEPORT)
 +WXDLLNAMEPREFIXGUI = wx_$(PORTNAME)$(WXUNIVNAME)
 +WXDLLVERSIONTAG = -1
+ @COND_PLATFORM_WIN32_0@WXDLLVERSIONTAG = -$(WX_RELEASE)
+ @COND_PLATFORM_WIN32_1@WXDLLVERSIONTAG = 
  COND_wxUSE_REGEX_builtin___wxregex___depname = \
- 	$(LIBDIRNAME)/$(LIBPREFIX)wxregex$(WXUNICODEFLAG)$(WXDEBUGFLAG)$(WX_LIB_FLAVOUR)-$(WX_RELEASE)$(HOST_SUFFIX)$(LIBEXT)
- @COND_wxUSE_REGEX_builtin@__wxregex___depname = $(COND_wxUSE_REGEX_builtin___wxregex___depname)
