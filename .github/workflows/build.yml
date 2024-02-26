@@ -62,7 +62,7 @@ jobs:
 
     runs-on: ubuntu-20.04
     steps:
-    - uses: actions/checkout@v2
+    - uses: actions/checkout@v4
       with:
         submodules: recursive
     
@@ -84,8 +84,35 @@ jobs:
       env:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
+  build-static:
+    needs: [calc_ver]
+
+    runs-on: ubuntu-20.04
+    steps:
+    - uses: actions/checkout@v4
+      with:
+        submodules: recursive
+    
+    - name: Install Dependencies
+      run: ${{github.workspace}}/build-scripts/for-win64/prepare-ubuntu.sh
+      
+    - name: Build
+      working-directory: ${{github.workspace}}
+      run: ${{github.workspace}}/build-scripts/for-win64/build-static-on-ubuntu.sh ${{needs.calc_ver.outputs.project_ver}} ${{needs.calc_ver.outputs.build_ver}}
+
+    - name: Upload result
+      uses: nanoufo/action-upload-artifacts-and-release-assets@v1.4
+      with:
+        path: |
+          ${{github.workspace}}/build/win64/*${{needs.calc_ver.outputs.full_ver}}*.deb
+        upload-release-files: ${{ needs.calc_ver.outputs.release_flag }}
+        release-upload-url: ${{ needs.calc_ver.outputs.release_upload_url }}
+        if-no-files-found: error
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
   release:
-    needs: [calc_ver, build]
+    needs: [calc_ver, build, build-static]
     if: ${{ needs.calc_ver.outputs.release_flag == 'ON' }}
     runs-on: ubuntu-latest
     steps:
