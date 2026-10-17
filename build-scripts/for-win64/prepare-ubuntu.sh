@@ -4,9 +4,7 @@ set -e
 
 sudo apt-get update
 sudo DEBIAN_FRONTEND=noninteractive apt-get install -y \
-  patch file binutils autoconf automake libtool make \
-  g++-mingw-w64-x86-64 gcc-mingw-w64-x86-64 pkg-config-mingw-w64-x86-64 binutils-mingw-w64-x86-64
+  patch file binutils autoconf automake libtool make pkg-config wget gettext
 
-
-# sudo zypper install -y mingw64-filesystem mingw64-libexpat-devel mingw64-libjpeg-devel mingw64-libpng-devel mingw64-libtiff-devel
-
+# the same posix mingw toolchain that GrandOrgue is built with
+`dirname $0`/prepare-mingw.sh

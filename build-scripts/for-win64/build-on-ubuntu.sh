@@ -5,9 +5,9 @@ set -e
 SRC_DIR=`dirname $0`/../..
 PARALLEL_PRMS="-j$(nproc)"
 DEBIAN_PKG_NAME=wxwidgets3-mingw-w64
-VERSION=${1:-3.1.5}
+VERSION=${1:-3.3.4}
 BUILD_VERSION=${2:-0.go}
-MINGW64_PREFIX=/usr/x86_64-w64-mingw32
+MINGW64_PREFIX=/mingw64
 PKG_DIR=`pwd`/build/win64/${DEBIAN_PKG_NAME}_${VERSION}-${BUILD_VERSION}_all
 
 
@@ -17,22 +17,20 @@ cp -Rv $SRC_DIR/submodules/WxWidgets build/win64/src
 
 pushd build/win64/src
 
-patch -p1 <$SRC_DIR/patches/soversion.diff
 # patch -p1 <$SRC_DIR/patches/16849.diff
 # patch -p0 <$SRC_DIR/patches/fix-msw-ConvertToImage-alpha.patch
 
-export LIBPNG16_CONFIG=/usr/x86_64-w64-mingw32/bin/libpng16-config
 export HOST_CC=gcc
-export CC=x86_64-w64-mingw32-gcc
+export CC=x86_64-w64-mingw32-gcc-posix
 export CFLAGS="-O2 -g -pipe -Wall -fexceptions --param=ssp-buffer-size=4 -mms-bitfields"
-export CXX=x86_64-w64-mingw32-g++
+export CXX=x86_64-w64-mingw32-g++-posix
 export CXXFLAGS="-O2 -g -pipe -Wall -fexceptions --param=ssp-buffer-size=4 -mms-bitfields"
 export PKG_CONFIG_PATH="$MINGW64_PREFIX/lib/pkgconfig:$MINGW64_PREFIX/share/pkgconfig"
 export LDFLAGS="-Wl,--exclude-libs=libintl.a -Wl,--exclude-libs=libiconv.a -Wl,--no-keep-memory -fstack-protector"
 
-./configure --cache-file=mingw64-config.cache \
+./configure \
 	--host=x86_64-w64-mingw32 \
-	--build=x86_64-suse-linux-gnu \
+	--build=x86_64-pc-linux-gnu \
 	--target=x86_64-w64-mingw32 \
 	--prefix=$MINGW64_PREFIX \
 	--exec-prefix=$MINGW64_PREFIX \
@@ -47,7 +45,10 @@ export LDFLAGS="-Wl,--exclude-libs=libintl.a -Wl,--exclude-libs=libiconv.a -Wl,-
 	--sharedstatedir=$MINGW64_PREFIX/com \
 	--mandir=$MINGW64_PREFIX/share/man \
 	--infodir=$MINGW64_PREFIX/share/info \
-	--enable-stl --enable-debug --enable-accessibility \
+	--enable-debug --enable-accessibility \
+	--with-libpng=builtin --with-libjpeg=builtin --with-libtiff=builtin \
+	--with-libwebp=builtin --with-expat=builtin --with-zlib=builtin \
+	--with-regex=builtin \
 	--enable-vendor=ubuntu
 
 make $PARALLEL_PRMS
@@ -57,7 +58,7 @@ MINGW_DIR=${PKG_DIR}${MINGW64_PREFIX}
 mkdir -p $MINGW_DIR/bin # otherwise make install works incorrectly
 make $PARALLEL_PRMS DESTDIR=${PKG_DIR} install
 mkdir -p $MINGW_DIR/bin
-/usr/x86_64-w64-mingw32/bin/strip $MINGW_DIR/bin/*.dll
+x86_64-w64-mingw32-strip $MINGW_DIR/bin/*.dll
 
 cd ..
 

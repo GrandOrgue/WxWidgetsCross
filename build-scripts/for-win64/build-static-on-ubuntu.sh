@@ -5,9 +5,9 @@ set -e
 SRC_DIR=`dirname $0`/../..
 PARALLEL_PRMS="-j$(nproc)"
 DEBIAN_PKG_NAME=wxwidgets3-mingw-w64-static
-VERSION=${1:-3.2.3}
+VERSION=${1:-3.3.4}
 BUILD_VERSION=${2:-0.go}
-MINGW64_PREFIX=/usr/x86_64-w64-mingw32
+MINGW64_PREFIX=/mingw64
 PKG_DIR=`pwd`/build/win64-static/${DEBIAN_PKG_NAME}_${VERSION}-${BUILD_VERSION}_all
 
 
@@ -17,7 +17,8 @@ cp -Rv $SRC_DIR/submodules/WxWidgets build/win64-static/src
 
 pushd build/win64-static/src
 
-./configure --host=x86_64-w64-mingw32 --prefix=$MINGW64_PREFIX --enable-unicode --disable-shared
+CC=x86_64-w64-mingw32-gcc-posix CXX=x86_64-w64-mingw32-g++-posix \
+./configure --host=x86_64-w64-mingw32 --prefix=$MINGW64_PREFIX --disable-shared
 
 make $PARALLEL_PRMS
 

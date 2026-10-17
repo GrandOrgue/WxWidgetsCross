@@ -60,7 +60,7 @@ jobs:
   build:
     needs: [calc_ver]
 
-    runs-on: ubuntu-20.04
+    runs-on: ubuntu-24.04
     steps:
     - uses: actions/checkout@v4
       with:
@@ -87,7 +87,7 @@ jobs:
   build-static:
     needs: [calc_ver]
 
-    runs-on: ubuntu-20.04
+    runs-on: ubuntu-24.04
     steps:
     - uses: actions/checkout@v4
       with:
