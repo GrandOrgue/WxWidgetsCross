@@ -28,7 +28,7 @@ export CXXFLAGS="-O2 -g -pipe -Wall -fexceptions --param=ssp-buffer-size=4 -mms-
 export PKG_CONFIG_PATH="$MINGW64_PREFIX/lib/pkgconfig:$MINGW64_PREFIX/share/pkgconfig"
 export LDFLAGS="-Wl,--exclude-libs=libintl.a -Wl,--exclude-libs=libiconv.a -Wl,--no-keep-memory -fstack-protector"
 
-./configure --cache-file=mingw64-config.cache \
+./configure \
 	--host=x86_64-w64-mingw32 \
 	--build=x86_64-pc-linux-gnu \
 	--target=x86_64-w64-mingw32 \

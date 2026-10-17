@@ -18,7 +18,7 @@ cp -Rv $SRC_DIR/submodules/WxWidgets build/win64-static/src
 pushd build/win64-static/src
 
 CC=x86_64-w64-mingw32-gcc-posix CXX=x86_64-w64-mingw32-g++-posix \
-./configure --host=x86_64-w64-mingw32 --prefix=$MINGW64_PREFIX --enable-unicode --disable-shared
+./configure --host=x86_64-w64-mingw32 --prefix=$MINGW64_PREFIX --disable-shared
 
 make $PARALLEL_PRMS
 
